@@ -1,5 +1,6 @@
 import os
 import shutil
+import sys
 import tempfile
 from contextlib import contextmanager
 from pathlib import Path
@@ -76,13 +77,18 @@ def test_copier(template: Path, run_copier: Callable[..., Path]):
 
 def test_bake_and_test(template: Path, run_copier: Callable[..., Path]):
     NAME = "some-project"
-    output = run_copier(template, project_name=NAME, git_init=True)
+    output = run_copier(
+        template,
+        project_name=NAME,
+        git_init=True,
+        minimum_python=sys.version_info.minor,  # use current minor version for CI
+    )
     with inside_dir(str(output)):
         run(["uv", "run", "pytest"], check=True)
 
 
 def test_bake_and_build(template, run_copier: Callable[..., Path]):
-    output = run_copier(template, git_init=True)
+    output = run_copier(template, git_init=True, minimum_python=sys.version_info.minor)
 
     with inside_dir(str(output)):
         run(["uv", "run", "check-manifest"], check=True)
