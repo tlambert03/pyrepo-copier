@@ -82,7 +82,7 @@ minimum_python:
   when: "{{ mode == 'customize' }}"
   help: What is the minimum supported Python version (https://devguide.python.org/versions/)?
   type: int
-  default: 9
+  default: 10
   choices:
     🐍 3.9: 9
     🐍 3.10: 10
@@ -98,6 +98,15 @@ test_pre_release:
        on a Github Actions cron job?
   type: bool
   default: "{{ mode != 'simple' }}"
+
+test_lowest_pinned_dependencies:
+  when: "{{ mode == 'customize' }}"
+  type: bool
+  default: false
+  help: |
+    Would you like to test against both highest and lowest pinned dependencies?
+       This adds a resolution matrix to test dependency resolution strategies.
+       (It also requires that you add '>=' to all your deps in pyproject.toml)
 
 use_pre_commit:
   when: "{{ mode == 'customize' }}"

@@ -2,6 +2,7 @@
 name = "pyrepo-copier"
 version = "0.1.0"
 readme = "README.md"
+requires-python = ">=3.9"
 license = { text = "BSD-3-Clause" }
 
 [tool.mypy]
@@ -20,6 +21,7 @@ norecursedirs = "{{project_name}}"
 
 [dependency-groups]
 dev = [
+    "actionlint-py>=1.7.7.23",
     "check-manifest>=0.50",
     "copier>=9.7.1",
     "pre-commit>=4.2.0",

@@ -1,5 +1,6 @@
 import os
 import shutil
+import sys
 import tempfile
 from contextlib import contextmanager
 from pathlib import Path
@@ -76,13 +77,18 @@ def test_copier(template: Path, run_copier: Callable[..., Path]):
 
 def test_bake_and_test(template: Path, run_copier: Callable[..., Path]):
     NAME = "some-project"
-    output = run_copier(template, project_name=NAME, git_init=True)
+    output = run_copier(
+        template,
+        project_name=NAME,
+        git_init=True,
+        minimum_python=sys.version_info.minor,  # use current minor version for CI
+    )
     with inside_dir(str(output)):
         run(["uv", "run", "pytest"], check=True)
 
 
 def test_bake_and_build(template, run_copier: Callable[..., Path]):
-    output = run_copier(template, git_init=True)
+    output = run_copier(template, git_init=True, minimum_python=sys.version_info.minor)
 
     with inside_dir(str(output)):
         run(["uv", "run", "check-manifest"], check=True)
@@ -100,3 +106,36 @@ def test_bake_and_pre_commit(template, run_copier: Callable[..., Path]):
         run(["pre-commit", "install"], check=True)
         run(["git", "add", "."], check=True)
         run(["pre-commit", "run", "--all-files"], check=True)
+
+
+@pytest.mark.parametrize(
+    "kwargs",
+    [
+        {"mode": "simple"},
+        {"mode": "tooling"},
+        {
+            "mode": "customize",
+            "minimum_python": 10,
+            "test_lowest_pinned_dependencies": True,
+            "test_pre_release": True,
+        },
+    ],
+    ids=lambda d: d["mode"],
+)
+def test_actionlint_on_rendered_workflow(
+    template: Path, run_copier: Callable[..., Path], kwargs: dict[str, Any]
+):
+    """Test that the rendered CI workflow passes actionlint validation."""
+    # Test with default settings (should not have resolution matrix)
+    output = run_copier(template, **kwargs)
+    ci_file = output / ".github" / "workflows" / "ci.yml"
+    assert ci_file.exists()
+
+    # Run actionlint on default configuration
+    run(["actionlint", str(ci_file)], check=True)
+
+    # Verify no resolution matrix in default output
+    ci_content = ci_file.read_text(encoding="utf-8")
+    is_custom = kwargs["mode"] == "customize"
+    assert ("resolution:" in ci_content) is is_custom
+    assert ("[${{ matrix.resolution }}]" in ci_content) is is_custom
