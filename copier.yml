@@ -82,9 +82,8 @@ minimum_python:
   when: "{{ mode == 'customize' }}"
   help: What is the minimum supported Python version (https://devguide.python.org/versions/)?
   type: int
-  default: 9
+  default: 10
   choices:
-    🐍 3.9: 9
     🐍 3.10: 10
     🐍 3.11: 11
     🐍 3.12: 12
@@ -116,3 +115,9 @@ use_mypy:
   type: bool
   help: Add mypy for static type checking on type hints?
   default: "{{ mode != 'simple' }}"
+
+use_ty:
+  when: "{{ mode == 'customize' and use_pre_commit }}"
+  type: bool
+  help: Add astral-sh/ty for static type checking on type hints?
+  default: "{{ mode != 'simple' and use_mypy == false }}"

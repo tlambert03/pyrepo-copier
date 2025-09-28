@@ -24,15 +24,17 @@ jobs:
   check-manifest:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - run: pipx run check-manifest
 {% endif %}{% raw %}
   test:
-    name: ${{ matrix.platform }} (${{ matrix.python-version }})
+    name: ${{ matrix.platform }} (${{ matrix.python-version }}) [${{ matrix.resolution }}]
     runs-on: ${{ matrix.platform }}{% endraw %}
     {%- if test_pre_release %}
     env:
       UV_PRERELEASE: {% raw %}${{ github.event_name == 'schedule' && 'allow' || 'if-necessary-or-explicit' }}{% endraw %}
+      UV_RESOLUTION: ${{ matrix.resolution }}
+      PYTEST_ADDOPTS: ${{ matrix.resolution == 'lowest-direct' && '-W ignore' || '' }}
     {%- endif %}
     strategy:
       fail-fast: false
@@ -44,9 +46,10 @@ jobs:
           {% if minimum_python <= 12 %}"3.13", {% endif -%}
           {% if minimum_python <= 13 %}"3.14"{% endif %}{% raw %}]
         platform: [ubuntu-latest, macos-latest, windows-latest]
+        resolution: ["highest", "lowest-direct"]
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: 🐍 Set up Python ${{ matrix.python-version }}
         uses: astral-sh/setup-uv@v6
@@ -86,7 +89,7 @@ jobs:
     needs: test
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
       - uses: hynek/build-and-inspect-python-package@v2
@@ -105,7 +108,7 @@ jobs:
 
     steps:
       - name: Download built artifact to dist/
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: Packages
           path: dist
