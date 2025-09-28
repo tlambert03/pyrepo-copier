@@ -84,6 +84,7 @@ minimum_python:
   type: int
   default: 10
   choices:
+    🐍 3.9: 9
     🐍 3.10: 10
     🐍 3.11: 11
     🐍 3.12: 12
