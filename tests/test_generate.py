@@ -129,7 +129,7 @@ def test_actionlint_on_rendered_workflow(
     run(["actionlint", str(ci_file)], check=True)
 
     # Verify no resolution matrix in default output
-    ci_content = ci_file.read_text()
+    ci_content = ci_file.read_text(encoding="utf-8")
     is_custom = kwargs["mode"] == "customize"
     assert ("resolution:" in ci_content) is is_custom
     assert ("[${{ matrix.resolution }}]" in ci_content) is is_custom
