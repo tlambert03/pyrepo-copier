@@ -100,3 +100,36 @@ def test_bake_and_pre_commit(template, run_copier: Callable[..., Path]):
         run(["pre-commit", "install"], check=True)
         run(["git", "add", "."], check=True)
         run(["pre-commit", "run", "--all-files"], check=True)
+
+
+@pytest.mark.parametrize(
+    "kwargs",
+    [
+        {"mode": "simple"},
+        {"mode": "tooling"},
+        {
+            "mode": "customize",
+            "minimum_python": 10,
+            "test_lowest_pinned_dependencies": True,
+            "test_pre_release": True,
+        },
+    ],
+    ids=lambda d: d["mode"],
+)
+def test_actionlint_on_rendered_workflow(
+    template: Path, run_copier: Callable[..., Path], kwargs: dict[str, Any]
+):
+    """Test that the rendered CI workflow passes actionlint validation."""
+    # Test with default settings (should not have resolution matrix)
+    output = run_copier(template, **kwargs)
+    ci_file = output / ".github" / "workflows" / "ci.yml"
+    assert ci_file.exists()
+
+    # Run actionlint on default configuration
+    run(["actionlint", str(ci_file)], check=True)
+
+    # Verify no resolution matrix in default output
+    ci_content = ci_file.read_text()
+    is_custom = kwargs["mode"] == "customize"
+    assert ("resolution:" in ci_content) is is_custom
+    assert ("[${{ matrix.resolution }}]" in ci_content) is is_custom

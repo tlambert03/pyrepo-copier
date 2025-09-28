@@ -26,28 +26,34 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - run: pipx run check-manifest
-{% endif %}{% raw %}
-  test:
-    name: ${{ matrix.platform }} (${{ matrix.python-version }}) [${{ matrix.resolution }}]
+{% endif %}
+  test:{% raw %}
+    name: ${{ matrix.platform }} (${{ matrix.python-version }}){% endraw %}{%- if test_lowest_pinned_dependencies %}{% raw %} [${{ matrix.resolution }}]{% endraw %}{% endif %}{% raw %}
     runs-on: ${{ matrix.platform }}{% endraw %}
-    {%- if test_pre_release %}
+    {%- if test_pre_release or test_lowest_pinned_dependencies %}
     env:
+      {%- if test_pre_release %}
       UV_PRERELEASE: {% raw %}${{ github.event_name == 'schedule' && 'allow' || 'if-necessary-or-explicit' }}{% endraw %}
-      UV_RESOLUTION: ${{ matrix.resolution }}
-      PYTEST_ADDOPTS: ${{ matrix.resolution == 'lowest-direct' && '-W ignore' || '' }}
+      {%- endif %}
+      {%- if test_lowest_pinned_dependencies %}
+      UV_RESOLUTION: {% raw %}${{ matrix.resolution }}{% endraw %}
+      PYTEST_ADDOPTS: {% raw %}${{ matrix.resolution == 'lowest-direct' && '-W ignore' || '' }}{% endraw %}
+      {%- endif %}
     {%- endif %}
     strategy:
       fail-fast: false
       matrix:
         python-version: [{%- if minimum_python <= 9 %}"3.9", {% endif -%}
-          {% if minimum_python <= 10 %}"3.10", {% endif -%}
-          {% if minimum_python <= 11 %}"3.11", {% endif -%}
-          {% if minimum_python <= 12 %}"3.12", {% endif -%}
-          {% if minimum_python <= 12 %}"3.13", {% endif -%}
-          {% if minimum_python <= 13 %}"3.14"{% endif %}{% raw %}]
-        platform: [ubuntu-latest, macos-latest, windows-latest]
-        resolution: ["highest", "lowest-direct"]
-
+          {%- if minimum_python <= 10 %}"3.10", {% endif -%}
+          {%- if minimum_python <= 11 %}"3.11", {% endif -%}
+          {%- if minimum_python <= 12 %}"3.12", {% endif -%}
+          {%- if minimum_python <= 12 %}"3.13", {% endif -%}
+          {%- if minimum_python <= 13 %}"3.14"{% endif %}{% raw %}]
+        platform: [ubuntu-latest, macos-latest, windows-latest]{% endraw %}
+        {%- if test_lowest_pinned_dependencies %}{% raw %}
+        resolution: ["highest", "lowest-direct"]{% endraw %}
+        {%- endif %}
+{% raw %}
     steps:
       - uses: actions/checkout@v5
 

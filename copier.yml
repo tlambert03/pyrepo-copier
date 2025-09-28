@@ -98,6 +98,15 @@ test_pre_release:
   type: bool
   default: "{{ mode != 'simple' }}"
 
+test_lowest_pinned_dependencies:
+  when: "{{ mode == 'customize' }}"
+  type: bool
+  default: false
+  help: |
+    Would you like to test against both highest and lowest pinned dependencies?
+       This adds a resolution matrix to test dependency resolution strategies.
+       (It also requires that you add '>=' to all your deps in pyproject.toml)
+
 use_pre_commit:
   when: "{{ mode == 'customize' }}"
   type: bool
