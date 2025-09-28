@@ -102,6 +102,8 @@ dev = [
     "rich",  # https://github.com/Textualize/rich
     {%- if use_ruff %}
     "ruff",{%- endif %}
+    {%- if use_ty %}
+    "ty",{%- endif %}
 ]
 
 [tool.uv.sources]
@@ -146,7 +148,6 @@ ignore = [
 docstring-code-format = true
 skip-magic-trailing-comma = false  # default is false
 {%- endif -%}
-{%- if use_mypy %}
 
 # https://docs.pytest.org/
 [tool.pytest.ini_options]
@@ -154,6 +155,8 @@ minversion = "7.0"
 addopts = ["--color=yes"]
 testpaths = ["tests"]
 filterwarnings = ["error"]
+
+{%- if use_mypy %}
 
 # https://mypy.readthedocs.io/en/stable/config_file.html
 [tool.mypy]
@@ -169,6 +172,11 @@ pretty = true
 # [[tool.mypy.overrides]]
 # module = ["numpy.*",]
 # ignore_errors = true
+{%- endif -%}
+{%- if use_ty %}
+# https://docs.astral.sh/ty/reference/configuration/
+[tool.ty.src]
+include = ["src", "tests"]
 {%- endif %}
 
 # https://coverage.readthedocs.io/
